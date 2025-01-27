@@ -1,0 +1,39 @@
+name: GitHub-Profile-3D-Contrib
+
+on:
+  schedule:
+    - cron: "0 18 * * 0"  # Runs every Sunday at 18:00 UTC (03:00 JST)
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Generate GitHub Profile 3D Contributions
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Debug environment variables
+        run: |
+          echo "GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}"
+          echo "USERNAME: ${{ github.repository_owner }}"
+
+      - name: Generate 3D Contribution Profile
+        uses: yoshi389111/github-profile-3d-contrib@0.7.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USERNAME: ${{ github.repository_owner }}
+
+      - name: Check if there are changes
+        run: |
+          git diff --exit-code || echo "Changes detected"
+
+      - name: Commit & Push changes if any
+        if: success() && steps.check.outputs.exit-code != '0'
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add -A .
+          git commit -m "3D contribution profile generated"
+          git push
